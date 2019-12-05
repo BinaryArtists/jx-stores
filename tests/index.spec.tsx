@@ -21,15 +21,15 @@ describe('#Icestore', () => {
     });
 
     test('should return a Store.', () => {
-      const store = icestore.register('test', {
+      const store = icestore.use('test', {
         name: 'ice',
       });
       expect(store instanceof Store).toBe(true);
     });
 
     test('should throw an Error when the same namespace is registered.', () => {
-      icestore.register('test', {});
-      expect(() => icestore.register('test', {})).toThrowError('Namespace have been used: test');
+      icestore.use('test', {});
+      expect(() => icestore.use('test', {})).toThrowError('Namespace have been used: test');
     });
   });
 
@@ -41,7 +41,7 @@ describe('#Icestore', () => {
 
     beforeEach(() => {
       icestore = new Icestore();
-      icestore.register('foo', { data: 'abc', fetchData: () => {} });
+      icestore.use('foo', { data: 'abc', fetchData: () => {} });
     });
 
     test('should apply to global success.', () => {
@@ -62,7 +62,7 @@ describe('#Icestore', () => {
 
     beforeEach(() => {
       icestore = new Icestore();
-      icestore.register('foo', { data: 'abc', fetchData: () => {} });
+      icestore.use('foo', { data: 'abc', fetchData: () => {} });
     });
 
     test('should get state from store success.', () => {
@@ -92,7 +92,7 @@ describe('#Icestore', () => {
       const newState = {
         name: 'rax',
       };
-      icestore.register('todo', {
+      icestore.use('todo', {
         dataSource: initState,
         setData(dataSource) {
           this.dataSource = dataSource;
@@ -147,8 +147,8 @@ describe('#Icestore', () => {
     test('should useStores be ok.', () => {
       const todoStore = { name: 'ice' };
       const projectStore = { name: 'rax' };
-      icestore.register('todo', todoStore);
-      icestore.register('project', projectStore);
+      icestore.use('todo', todoStore);
+      icestore.use('project', projectStore);
 
       const App = () => {
         const [todo, project] = icestore.useStores(['todo', 'project']);

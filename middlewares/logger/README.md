@@ -1,13 +1,3 @@
-# icestore-logger
-
-> icestore 调试 middleware
-
-
-## 安装
-
-```bash
-npm install @ice/store-logger --save
-```
 
 ## 简介
 
@@ -15,24 +5,23 @@ npm install @ice/store-logger --save
 
 ## 快速开始
 
-在注册 store 之前，使用 `applyMiddleware` 方法将 logger 中间件加入到中间件队列中
+在注册 store 之前，使用 `mix` 方法将 logger 中间件加入到中间件队列中
 
 ```javascript
 import todos from './todos';
-import Icestore from '@ice/store';
+import JxStores from '@ice/store';
 import logger from '@ice/store-logger';
 
-const icestore = new Icestore();
-
-const middlewares = [];
+const stores = new JxStores();
+const plugins = [];
 
 // 线上环境不开启调试中间件
 if (process.env.NODE_ENV !== 'production') {
-  middlewares.push(logger);
+  plugins.push(logger);
 }
 
-icestore.applyMiddleware(middlewares);
-icestore.register('todos', todos);
+stores.mix(plugins);
+stores.use('todos', todos);
 ```
 
 注册成功后，当 `store` 中的 action 被调用时，在浏览器的 DevTools 中将能看到实时的日志：

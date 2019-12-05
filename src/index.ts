@@ -17,7 +17,7 @@ export default class Icestore {
    * @param {object} bindings - object of state and actions used to init store
    * @return {object} store instance
    */
-  public register(namespace: string, bindings: object): Store {
+  public use(namespace: string, bindings: object): Store {
     if (this.stores[namespace]) {
       throw new Error(`Namespace have been used: ${namespace}.`);
     }
@@ -35,7 +35,7 @@ export default class Icestore {
    * @param {array} middlewares - middlewares queue of store
    * @param {string} namespace - unique name of store
    */
-  public install(middlewares: Middleware[], namespace: string): void {
+  public mix(middlewares: Middleware[], namespace: string): void {
     if (namespace !== undefined) {
       this.middlewareMap[namespace] = middlewares;
     } else {

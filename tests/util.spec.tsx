@@ -15,27 +15,27 @@ describe('#util', () => {
 
   describe('#compose', () => {
     const arr = [];
-    const middlewares = [];
+    const plugins = [];
 
     function wait (ms) {
       return new Promise((resolve) => setTimeout(resolve, ms || 1))
     }
     test('should work', async () => {
-      middlewares.push(async (ctx, next) => {
+      plugins.push(async (ctx, next) => {
         arr.push(1);
         await wait(1);
         await next();
         await wait(1);
         arr.push(6);
       });
-      middlewares.push(async (ctx, next) => {
+      plugins.push(async (ctx, next) => {
         arr.push(2);
         await wait(1);
         await next();
         await wait(1);
         arr.push(5);
       });
-      middlewares.push(async (ctx, next) => {
+      plugins.push(async (ctx, next) => {
         arr.push(3);
         await wait(1);
         await next();
@@ -53,7 +53,7 @@ describe('#util', () => {
           getState: () => { return {}; },
         },
       }
-      await compose(middlewares, ctx)();
+      await compose(plugins, ctx)();
       expect(arr).toEqual([1, 2, 3, 4, 5, 6]);
     });
   });

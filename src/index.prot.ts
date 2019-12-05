@@ -9,7 +9,7 @@ export interface Ctx {
   };
 }
 
-export interface Middleware {
+export interface Plugin {
   (ctx: Ctx, next: Promise<any>): any;
 }
 

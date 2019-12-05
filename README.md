@@ -1,81 +1,67 @@
-English | [简体中文](./README.zh-CN.md)
+[English](./README.md) | 简体中文
 
-最大化支持前端领域驱动
+轻量级状态管理框架，有以下核心特点：
 
-# icestore
+## 安装
 
-> Lightweight React state management library based on react hooks
-
-[![NPM version](https://img.shields.io/npm/v/@ice/store.svg?style=flat)](https://npmjs.org/package/@ice/store)
-[![Package Quality](https://npm.packagequality.com/shield/@ice%2Fstore.svg)](https://packagequality.com/#?package=@ice/store)
-[![build status](https://img.shields.io/travis/ice-lab/icestore.svg?style=flat-square)](https://travis-ci.org/ice-lab/icestore)
-[![Test coverage](https://img.shields.io/codecov/c/github/ice-lab/icestore.svg?style=flat-square)](https://codecov.io/gh/ice-lab/icestore)
-[![NPM downloads](http://img.shields.io/npm/dm/@ice/store.svg?style=flat)](https://npmjs.org/package/@ice/store)
-[![Known Vulnerabilities](https://snyk.io/test/npm/@ice/store/badge.svg)](https://snyk.io/test/npm/@ice/store)
-[![David deps](https://img.shields.io/david/ice-lab/icestore.svg?style=flat-square)](https://david-dm.org/ice-lab/icestore)
-
-## Installation
+依赖了 React@16.8.0+ 提供的 Hooks 特性，因此只支持 React 16.8.0 及以上版本。
 
 ```bash
-npm install @ice/store --save
+$ npm i -S jx-dcore
 ```
 
-## Introduction
+## Features
 
-`icestore` is a lightweight React state management library based on hooks. It has the following core features:
+* **极简 API**：只有 5 个 API，简单上手，使用方便，不需要学习 Redux 里的各种概念。
+* **React Hooks**：拥抱 Hooks 的使用体验，同时也是基于 React Hooks 实现。
+* **集成异步状态**：记录异步 action 的执行状态，简化 view 组件中对于 loading 与 error 状态的渲染逻辑。
+* **性能优化**：通过多 store 的去中心化设计，减少单个 state 变化触发重新渲染的组件个数，从而减少不必要的渲染。
+* **单向数据流**：与 Redux 一样使用单向数据流，便于状态的追踪与预测。
 
-* Minimal API: Contains 5 APIs, which is easily learnable in 5 minutes.
-* Predictable: Uses unidirectional data flow (similar to Redux) and allows state mutation only inside actions, allowing data flow to be traced easily.
-* Optimal performance: Decreases the number of view components that rerender when the state changes by creating multiple stores.
-* Built in async status: Records loading and error status of async actions, simplifying the rendering logic in the view layer.
+## 快速开始
 
-The data flow is as follows:  
+让我们使用 `icestore` 开发一个简单的 todo 应用，包含以下几个步骤：
 
-<img src="https://user-images.githubusercontent.com/5419233/60878757-f44a6b00-a272-11e9-8afa-d47e8493e040.png" width="400" />
-
-### Compatibility
-
-`icestore` is only compatable with React 16.8.0 and later because of its dependency on React hooks.
-
-## Getting Started
-
-Let's build a simple todo app from scatch using `icestore` which includes following steps:
-
-* Define a store config (a plain JavaScript object) which consists of function properties (correspond to the action) and other properties (correspond to state).
+* 定义 store：
 
 ```javascript
-// src/stores/todos.js
+// src/stores/todos.js，不同 store 对应不同的 js 文件
 export default {
   dataSource: [],
-  async refresh() {
-    this.dataSource = await new Promise(resolve =>
+  async fetchData() {
+    // 模拟异步请求
+    const data = await new Promise(resolve =>
       setTimeout(() => {
         resolve([
           { name: 'react' },
-          { name: 'vue', done: true },
-          { name: 'angular' }
+          { name: 'vue', done: true},
+          { name: 'angular' },
         ]);
       }, 1000)
-    );  },
+    );
+    this.dataSource = data;
+  },
+
   add(todo) {
     this.dataSource.push(todo);
   },
 };
 ```
-* Initialize the store instance and register the pre-defined store config using the namespace.
+
+* 注册 store：
 
 ```javascript
-// src/stores/index.js
+// src/stores/index.js，所有的 store 都在这里注册
 import todos from './todos';
-import Icestore from '@ice/store';
+import Store from '@ice/store';
 
-const icestore = new Icestore();
-icestore.register('todos', todos);
+const storeManager = new Store();
+storeManager.use('todos', todos);
 
-export default icestore;
+export default storeManager;
 ```
 
-* In the view component, you can get the store config (including state and actions) by using the useStore hook after importing the store instance. After that, you can trigger actions through event callbacks or by using the useEffect hook, which binds the state to the view template.
+* 在 view 组件中，绑定 store：
 
 ```javascript
 // src/index.js
@@ -85,78 +71,88 @@ import stores from './stores';
 
 function Todo() {
   const todos = stores.useStore('todos');
-  const { dataSource, refresh, add, remove, toggle } = todos;
+  const { dataSource, fetchData, add, } = todos;
 
   useEffect(() => {
-    refresh();
+    fetchData();
   }, []);
 
-  function onAdd(name) {
+  function handleAdd(name) {
     add({ name });
   }
 
-  function onRemove(index) {
-    remove(index);
-  }
-
-  function onCheck(index) {
-    toggle(index);
-  }
-
-  const noTaskView = <span>no task</span>;
-  const loadingView = <span>loading...</span>;
-  const taskView = dataSource.length ? (
-    <ul>
-      {dataSource.map(({ name, done }, index) => (
-        <li key={index}>
-          <label>
-            <input
-              type="checkbox"
-              checked={done}
-              onClick={() => onCheck(index)}
-            />
-            {done ? <s>{name}</s> : <span>{name}</span>}
-          </label>
-          <button onClick={() => onRemove(index)}>-</button>
-        </li>
-      ))}
-    </ul>
-  ) : (
-    noTaskView
-  );
-
-  return (
-    <div>
-      <h2>Todos</h2>
-      {!refresh.loading ? taskView : loadingView}
+  if (fetchData.loading) {
+    return <span>loading...</span>;
+  } else {
+    return (
       <div>
-        <input
-          onKeyDown={event => {
-            if (event.keyCode === 13) {
-              onAdd(event.target.value);
-              event.target.value = '';
-            }
-          }}
-          placeholder="Press Enter"
-        />
+        <ul>
+          {dataSource.map(({ name, done }, index) => (
+            <li key={index}>
+              <label>
+                <input
+                  type="checkbox"
+                  checked={done}
+                  onClick={() => onCheck(index)}
+                />
+                {done ? <s>{name}</s> : <span>{name}</span>}
+              </label>
+              <button onClick={() => onRemove(index)}>-</button>
+            </li>
+          ))}
+        </ul>
+        <div>
+          <input
+            onKeyDown={event => {
+              if (event.keyCode === 13) {
+                handleAdd(event.target.value);
+                event.target.value = '';
+              }
+            }}
+            placeholder="Press Enter"
+          />
+        </div>
       </div>
-    </div>
-  );
+    )
+  }
 }
 
-const rootElement = document.getElementById('root');
-ReactDOM.render(<Todo />, rootElement);
+ReactDOM.render(<Todo />, document.getElementById('root'));
 ```
 
-Complete example is presented in this [sandbox](https://codesandbox.io/s/icestore-hs9fe), feel free to play with it.
+完整示例展示在这个 [sandbox](https://codesandbox.io/s/icestore-hs9fe)。
 
-## Best Practices
 
-### Never mutate state outside actions
+## 实现原理
 
-`icestore` enforces all the mutations to the state to occur only in action methods. Mutation occurred outside actions will not take effect (e.g. in the view component).
+`icestore` 数据流示意图如下：
 
-The reason is that the mutation logic would be hard to trace and impossible to test as there might be unpredictable changes made to the view components as a result of mutations outside actions.
+<img src="https://user-images.githubusercontent.com/5419233/60956252-012f9300-a335-11e9-8667-75490ceb62b1.png" width="400" />
+
+## 最佳实践
+
+### 目录结构组织
+
+对于大多数的中小型项目，推荐将项目所有 store 集中管理在 `src/stores/` 目录下：
+
+```bash
+├── src/
+│   ├── components/
+│   │   └── NotFound/
+│   ├── pages/
+│   │   └── Home
+│   ├── stores/
+│   │   ├── storeA.js
+│   │   ├── storeB.js
+│   │   ├── storeC.js
+│   │   └── index.js
+```
+
+如果项目比较庞大或者更倾向于 store 跟随页面维护，那么可以在每个 page 目录都声明一个 store 示例，但是这种情况建立尽量避免跨页面的 store 调用。
+
+### 不要在 action 之外直接修改 state
+
+`icestore` 的架构设计中强制要求对 state 的变更只能在 action 中进行。在 action 之外的对 state 的修改不生效。这个设计的原因是在 action 之外修改 state 将导致 state 变更逻辑散落在 view 中，变更逻辑将会难以追踪和调试。
 
 ```javascript
   // store.js
@@ -166,103 +162,99 @@ The reason is that the mutation logic would be hard to trace and impossible to t
       this.inited = true;
     }
   }
-  
+
   // view.js
   const todos = useStore('todos');
-  
+
   useEffect(() => {
     // bad
     todos.inited = true;
-    
+
     // good
     todos.setInited();
   });
 ```
 
-### Divide store as small as possible
+### 尽可能小的拆分 store
 
-By design, `icestore` will trigger the rerender of all the view components subscribed to the store (by using useStore) once the state of the store has changed.
+从 `icestore` 的内部设计来看，当某个 store 的 state 发生变化时，所有使用 useStore 监听 store 变化的 view 组件都会触发重新渲染，这意味着一个 store 中存放的 state 越多越可能触发更多的 view 组件重新渲染。因此从性能方面考虑，建议按照功能划分将 store 拆分成一个个独立的个体。
 
-This means that putting more state in one store may cause more view components to rerender, affecting the overall performance of the application. As such, it is advised to categorize your state and put them in individual stores to improve performance.
+### 不要滥用 `icestore`
 
-### Don't overuse `icestore`
-
-From the engineering perspective, the global store should only be used to store states that are shared across multiple pages or components.
-
-Putting local state in the global store will break the component's encapsulation, affecting its reusability. Using the todo app as an example, if the app only has one page, the state of the todo app is preferred to be stored as a local state in the view component rather than in the global store.
+从工程的角度来看，store 中应该只用来存放跨页面与组件的状态。将页面或者组件中的内部状态放到 store 中将会破坏组件自身的封装性，进而影响组件的复用性。对于组件内部状态完全可以使用 useState 来实现，因此如果上面的 todo app 如果是作为工程中的页面或者组件存在的话，使用 useState 而不是全局 store 来实现才是更合理的。
 
 ## API
 
-### registerStore
+### use
 
-Register store config to the global store instance.
+将 store 配置注释到全局 store 实例。
 
-* Parameters
-  - namespace {string} unique name of the store
-  - bindings {object} object of store config including state and actions
-* Return value
-  - {object} store instance
+* 参数
+  - namespace {string} store 的命名空间
+  - bindings {object} store 配置，包含 state 和 actions
+* 返回值
+  - {object} store 实例
 
-### applyMiddleware
+### mix
 
-Apply middleware to all the store if the second parameter is not specified,
-otherwise apply middleware the store by namespace.
+给所有 store 或者指定 namespace 的 store 注册 middleware，如果不指定第 2 个参数，给所有 store 注册 middleware，如果指定第 2 个参数，则给指定 namespace 的 store 注册 middleware，详细用法见[注册方式](#注册方式)
 
-* Parameters
-  - middlewares {array} middleware array to be applied
-  - namespace {string} store namespace
-* Return value
-  - void
+* 参数
+  - middlewares {array} 待注册的 middleware 数组
+  - namespace {string} store 的命名空间
+* 返回值
+  - 无
 
 ### useStores
 
-Hook to use multiple stores.
+同时使用多个 store 的 hook。
 
-* Parameters
-  - namespaces {array} array of store namespaces
-* Return value
-  - {array} array of stores' instances
+* 参数
+  - namespaces {array} 多个 store 的命名空间数组
+* 返回值
+  - {array} 多个 store 的配置对象数组
 
 ### useStore
 
-Hook to use a single store.
+使用单个 store 的 hook。
 
-* Parameters
-  - namespace {string} store namespace
-* Return value
-  - {object} single store instance
+* 参数
+  - namespace {string} store 的命名空间
+* 返回值
+  - {object} store 的配置对象
 
 ### getState
 
-Get the latest state of individual store by namespace.
+获取单个 store 的最新 state 对象。
 
-* Parameters
-  - namespace {string} store namespace
-* Return value
-  - {object} the latest state of the store
+* 参数
+  - namespace {string} store 的命名空间
+* 返回值
+  - {object} store 的 state 对象
 
-## Advanced use
+## 高级用法
 
-### async actions' executing status
+### 异步 action 执行状态
 
-`icestore` has built-in support to access the executing status of async actions. This enables users to have access to the loading and error executing status of async actions without defining extra state, making the code more consise and clean.
+`icestore` 内部集成了对于异步 action 的异步状态记录，方便用户在不增加额外的 state 的前提下访问异步 action 的执行状态（loading 与 error），从而使状态的渲染逻辑更简洁。
 
 #### API
 
-* `action.loading` - flag checking if the action is executing
+* `action.loading` - action 是否正在执行中的标志位
   - Type: {boolean}
   - Default: false
-* `action.error` - error object if error was throw after action executed
+* `action.error` - action 执行完成后如果有错误发生返回的错误对象
   - Type: {object}
   - Default: null
-* `action.disableLoading` - flag to disable the loading effect of the action. If this is set to true, relevant view components would not rerender when their loading status changes
+* `action.disableLoading` - 是否关闭 action loading 效果的开关, 如果设置为 true, 当 loading 标志位变化时，关联的 view 组件将不会重新渲染
   - Type: {boolean}
   - Default: false
-* `store.disableLoading` - flag to disable the loading effect at global level. An action's disableLoading flag will always take priority when both values are set.
+* `store.disableLoading` - 是否全局关闭所有 action 的 loading 效果. 注意当全局与 action 上的该标志位均设置时，action 上标志位优先级高
   - Type: {boolean}
   - Default: false
 
-#### Example
+
+#### 示例
 
 ```javascript
 const todos = store.useStore('todos');
@@ -298,79 +290,85 @@ return (
 );
 ```
 
-### Middleware
+### 中间件
 
-#### Context
+#### 背景
 
-If you have used server side frameworks such as Express or koa, you were probably familiar with the concept of middleware already. Among these frameworks, middleware is used to insert custom code between `receiving request` and `generating response`, the functionality of middlewares include data mutation、authority check before the request was handled and add HTTP header、log printing after the request was handled.
+如果你有使用过服务端的框架如 Express 或者 koa，应该已经熟悉了中间件的概念，在这些框架中，中间件用于在框架 `接收请求` 与 `产生响应` 间插入自定义代码，这类中间件的功能包含在请求未被响应之前对数据进行加工、鉴权，以及在请求被响应之后添加响应头、打印 log 等功能。
 
-In state management area, Redux also implements middleware mechanism, it was used to put custom code between `action dispatching` and `reaching reducer`. Its functionalities include log printing, async mechanism such as thunk, promise.
 
-Like Redux, the purpose of `icestore` implementing middleware mechanism is to add an extensive mechanism between action was not dispatched and dispatched. The difference is that `icestore` already supports async action, so there is no need to write middleware for async support.
+在状态管理领域，Redux 同样实现了中间件的机制，用于在 `action 调用` 与 `到达 reducer` 之间插入自定义代码，中间件包含的功能有打印 log、提供 thunk 与 promise 异步机制、日志上报等。
 
-### middleware API
 
-`icestore` takes insiprations from koa for its middleware API design as follows:
+icestore 支持中间件的目的与 Redux 类似，也是为了在 action 调用前后增加一种扩展机制，增加诸如打印 log、埋点上报、异步请求封装等一系列能力，不同的是 icestore 已支持异步机制，因此不需要额外通过中间件方式支持。
+
+### 中间件 API
+
+在中间件 API 的设计上，`icestore` 借鉴了 koa 的 API，见如下：
 
 ```javascript
 async (ctx, next) =>  {
-  // logic before action was dispatched
+  // action 调用前逻辑
 
   const result = await next();
 
-  // logic after action was dispatched
+  // action 调用后逻辑
 
   return result;
 }
 ```
-Note: If there is return value in action, all the middlewares in the chain must return the executing result of the next middleware to ensure the action's return value is correctly return from middleware chain.
+
+如果用户定义的 action 中有返回值，中间件函数必须将下一个中间件的执行结果返回，以保证中间件链式调用完成后能拿到 action 的返回值。
 
 #### ctx API
 
-* ctx.action - the object of the action dispatched
-  * Type：{object}
-  * Return Value：void
-* ctx.action.name - the name of action dispatched
-  * Type：{string}
-  * Return Value：void
-* ctx.action.arguments - the arguments of current action function
-  * Type：{array}
-  * Return Value：void
-* ctx.store - the store object
-  * Type：{object}
-  * Return Value：void
-* ctx.store.namespace - the store namespace
-  * Type：{string}
-  * Return Value：void
-* ctx.store.getState - the method to get the latest state value of current store
-  * Type：{function}
-  * Return Value：void
+对于中间件函数的第一个 ctx 参数，从上面能拿到当前的 store 与当前调用 action 的信息，ctx 对象中包含的详细参数如下：
 
-The example is as follows:
+* ctx.action - 当前调用的 action 对象
+  * 类型：{object}
+  * 默认值：无
+* ctx.action.name - 当前调用的 action 方法名
+  * 类型：{string}
+  * 默认值：无
+* ctx.action.arguments - 当前调用的 action 方法参数数组
+  * 类型：{array}
+  * 默认值：无
+* ctx.store - 当前 store 对象
+  * 类型：{object}
+  * 默认值：无
+* ctx.store.namespace - 当前 store 的 namespace
+  * 类型：{string}
+  * 默认值：无
+* ctx.store.getState - 获取当前 store 最新 state 的方法
+  * 类型：{function}
+  * 参数：无
+
+调用方式如下：
 
 ```javascript
 const {
-  action, // the object of the action dispatched
-  store, // the store object
+  action, // 当前调用的 action 对象
+  store, // 当前 store 对象
 } = ctx;
 
 const {
-  name, // the name of action dispatched
-  arguments, // the arguments of current action function
+  name, // 当前调用的 action 方法名
+  arguments, // 当前调用的 action 方法参数数组
 } = action;
 
 const { 
-  namespace,  // the store namespace
-  getState, // the method to get the latest state value of current store
+  namespace,  // 当前 store namespace
+  getState, // 获取当前 store state 方法
 } = store;
 ```
 
-### Registration
+### 注册方式
 
-Due the multiple store design of `icestore`, it supports registering middlewares for indivisual store as follows:
+由于 `icestore` 的多 store 设计，`icestore` 支持给不同的 store 单独注册 middleware，
+方式如下：
 
-1. Global registration 
-  *  Global registration middlewares apply to all stores.
+1. 全局注册 middleware  
+  *  全局注册的 middleware 对所有 store 生效
 
 	```javascript
 	import Icestore from '@ice/store';
@@ -378,28 +376,22 @@ Due the multiple store design of `icestore`, it supports registering middlewares
 	stores.applyMiddleware([a, b]);
 	```
 
-2. Registration by namespace  
-  * The ultimate middleware queue of single store will merge global middlewares with its own middlewares.
+2. 指定 store 注册 middleware  
+  * store 上最终注册的 middleware 将与全局注册 middleware 做合并
 
 	```javascript
 	stores.applyMiddleware([a, b]); 
-	stores.applyMiddleware([c, d], 'foo'); // store foo middleware is [a, b, c, d]
-	stores.applyMiddleware([d, c], 'bar'); // store bar middleware is [a, b, d, c]
+	stores.applyMiddleware([c, d], 'foo'); // store foo 中间件为 [a, b, c, d]
+	stores.applyMiddleware([d, c], 'bar'); // store bar 中间件为 [a, b, d, c]
 	```
 
-## Debug
+## 调试
 
-`icestore` provide an official logger middleware to facilitate user traceing state changes and improve debug productivity.
+icestore 官方提供 logger 中间件，可以方便地跟踪触发 action 名以及 action 触发前后 state 的 diff 信息，提升问题排查效率。
 
-### Installation
+### 使用方式
 
-```bash
-npm install @ice/store-logger --save
-```
-
-### Guide
-
-Use `applyMiddleware` API to push logger middleware into middleware queue.
+在注册 store 之前，使用 `applyMiddleware` 方法将 logger 中间件加入到中间件队列中
 
 ```javascript
 import todos from './todos';
@@ -410,33 +402,28 @@ const icestore = new Icestore();
 
 const middlewares = [];
 
-// Turn off logger middleware in production enviroment
+// 线上环境不开启调试中间件
 if (process.env.NODE_ENV !== 'production') {
   middlewares.push(logger);
 }
 
-icestore.install(middlewares);
-icestore.register('todos', todos);
+icestore.mix(middlewares);
+icestore.use('todos', todos);
 ```
 
-When action was dispatched, the log will be printed into browser's DevTools by realtime:
+注册成功后，当 `store` 中的 action 被调用时，在浏览器的 DevTools 中将能看到实时的日志：
 
 <img src="https://user-images.githubusercontent.com/5419233/63344463-13184300-c383-11e9-96da-2de3b41f6e9b.png"  width="250" />
 
-The logger includes the following infos:
+日志中包含以下几个部分：
 
-* Store Name: namespace of current store
-* Action Name: action being dispatched
-* Added / Deleted / Updated: type of state changes
-* Old state: state before change
-* New state: state after change
+* Store Name: 当前子 store 对应的 namespace
+* Action Name: 当前触发的 action 名
+* Added / Deleted / Updated: state 变化的 diff
+* Old state: 更新前的 state
+* New state: 更新后的 state
 
-
-## Testing
-
-Because all the states and actions are contained in a plain JavaScript object, it is easy to write tests without using mock objects.
-
-Example:
+#### 示例
 
 ```javascript
 describe('todos', () => {
@@ -458,7 +445,7 @@ describe('todos', () => {
 });
 ```
 
-Please refer to the `todos.spec.js` file in the sandbox above for complete reference.
+完整的测试用例请参考上面[sandbox](https://codesandbox.io/s/icestore-hs9fe)中的 `todos.spec.js` 文件。
 
 ## Reference
 
@@ -466,13 +453,3 @@ Please refer to the `todos.spec.js` file in the sandbox above for complete refer
 - [redux-react-hook](https://github.com/facebookincubator/redux-react-hook)
 - [redux](https://github.com/reduxjs/redux)
 - [mobx](https://github.com/mobxjs/mobx)
-
-## Contributors
-
-Feel free to report any questions as an [issue](https://github.com/alibaba/ice/issues/new), we'd love to have your helping hand on `icestore`.
-
-If you're interested in `icestore`, see [CONTRIBUTING.md](https://github.com/alibaba/ice/blob/master/.github/CONTRIBUTING.md) for more information to learn how to get started.
-
-## License
-
-[MIT](LICENSE)
