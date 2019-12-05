@@ -104,7 +104,7 @@ describe('#Icestore', () => {
       const Todos = () => {
         const todo: any = icestore.useStore('todo');
         const { dataSource } = todo;
-// const [ state, setState ] = useState(initState);
+        // const [ state, setState ] = useState(initState);
 
         renderFn();
 
@@ -114,10 +114,10 @@ describe('#Icestore', () => {
           todo.setData(newState);
 
           console.log(newState);
-// setState(newState);
+          // setState(newState);
         }
 
-// <span data-testid="nameValue">{state.name}</span>
+        // <span data-testid="nameValue">{state.name}</span>
 
         return <div>
           <span data-testid="nameValue">{dataSource.name}</span>

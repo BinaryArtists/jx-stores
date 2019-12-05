@@ -1,6 +1,7 @@
-[English](./README.md) | 简体中文
 
 轻量级状态管理框架，有以下核心特点：
+
+"prepublishOnly": "npm run lint && npm run test && npm run build",
 
 ## 安装
 

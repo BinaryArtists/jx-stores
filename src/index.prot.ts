@@ -1,4 +1,4 @@
-export interface Ctx {
+export interface Context {
   action: {
     name: string;
     arguments: any[];
@@ -10,7 +10,7 @@ export interface Ctx {
 }
 
 export interface Plugin {
-  (ctx: Ctx, next: Promise<any>): any;
+  (ctx: Context, next: Promise<any>): any;
 }
 
 export interface ComposeFunc {

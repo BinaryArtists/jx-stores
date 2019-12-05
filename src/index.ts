@@ -1,15 +1,15 @@
 import Store from './viewmodel';
-import { Middleware } from './index.prot';
+import { Plugin } from './index.prot';
 
 export default class Icestore {
   /** Stores registered */
   private stores: {[namespace: string]: Store} = {};
 
   /** Global middlewares applied to all stores */
-  private plugins: Middleware[] = [];
+  private plugins: Plugin[] = [];
 
   /** middleware applied to single store */
-  private middlewareMap: {[namespace: string]: Middleware[]} = {};
+  private pluginMap: {[namespace: string]: Plugin[]} = {};
 
   /**
    * Register and init store
@@ -22,11 +22,11 @@ export default class Icestore {
       throw new Error(`Namespace have been used: ${namespace}.`);
     }
 
-    const storeMiddlewares = this.middlewareMap[namespace] || [];
-    const middlewares = this.plugins.concat(storeMiddlewares);
+    const storePlugins = this.pluginMap[namespace] || [];
+    const plugins = this.plugins.concat(storePlugins);
 
     // Bindings ==> ViewModel
-    this.stores[namespace] = new Store(namespace, bindings, middlewares);
+    this.stores[namespace] = new Store(namespace, bindings, plugins);
     return this.stores[namespace];
   }
 
@@ -35,11 +35,11 @@ export default class Icestore {
    * @param {array} middlewares - middlewares queue of store
    * @param {string} namespace - unique name of store
    */
-  public mix(middlewares: Middleware[], namespace: string): void {
+  public mix(plugins: Plugin[], namespace: string): void {
     if (namespace !== undefined) {
-      this.middlewareMap[namespace] = middlewares;
+      this.pluginMap[namespace] = plugins;
     } else {
-      this.plugins = middlewares;
+      this.plugins = plugins;
     }
   }
 

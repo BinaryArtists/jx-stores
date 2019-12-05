@@ -1,12 +1,12 @@
-import { Ctx, Middleware, ComposeFunc } from '../index.prot';
+import { Context, Plugin, ComposeFunc } from '../index.prot';
 
 /**
  * Compose a middleware chain consisting of all the middlewares
- * @param {array} middlewares - middlewares user passed
+ * @param {array} plugins - middlewares user passed
  * @param {object} ctx - middleware context
  * @return {function} middleware chain
  */
-export default function compose(middlewares: Middleware[], ctx: Ctx): ComposeFunc {
+export default function compose(plugins: Plugin[], ctx: Context): ComposeFunc {
   return async (...args) => {
     ctx.action.arguments = args;
 
@@ -18,7 +18,7 @@ export default function compose(middlewares: Middleware[], ctx: Ctx): ComposeFun
     let next = async () => {
       Promise.resolve();
     };
-    middlewares.slice().reverse().forEach((middleware) => {
+    plugins.slice().reverse().forEach((middleware) => {
       next = goNext(middleware, next);
     });
 

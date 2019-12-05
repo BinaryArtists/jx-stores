@@ -2,9 +2,9 @@ import * as isFunction from 'lodash.isfunction';
 import * as isPromise from 'is-promise';
 import { useState, useEffect } from 'react';
 import compose from '../util/compose';
-import { ComposeFunc, Middleware } from '../index.prot';
+import { ComposeFunc, Plugin } from '../index.prot';
 
-export default class Store {
+export default class ViewModel {
   private namespace = '';
 
   /** Store state and actions user defined */
@@ -13,8 +13,8 @@ export default class Store {
   /** Queue of setState method from useState hook */
   private queue = [];
 
-  /** Middleware queue of store */
-  private middlewares = [];
+  /** Plugins queue of store */
+  private plugins = [];
 
   /** Flag of whether disable loading effect globally */
   public disableLoading = false;
@@ -23,11 +23,11 @@ export default class Store {
    * Constuctor of Store
    * @param {string} namespace - unique name of store
    * @param {object} bindings - object of state and actions used to init store
-   * @param {array} middlewares - middlewares queue of store
+   * @param {array} plugins - middlewares queue of store
    */
-  public constructor(namespace: string, bindings: object, middlewares: Middleware []) {
+  public constructor(namespace: string, bindings: object, plugins: Plugin []) {
     this.namespace = namespace;
-    this.middlewares = middlewares;
+    this.plugins = plugins;
 
     Object.keys(bindings).forEach((key) => {
       const value = bindings[key];
@@ -44,6 +44,7 @@ export default class Store {
   private createAction(func: () => any, actionName: string): ComposeFunc {
     const actionWrapper: any = async (...args) => {
       console.log('actionwrapper');
+      
       wrapper.loading = true;
       wrapper.error = null;
 
@@ -85,7 +86,7 @@ export default class Store {
         getState: this.getState,
       },
     };
-    const wrapper: any = compose(this.middlewares.concat(actionMiddleware), ctx);
+    const wrapper: any = compose(this.plugins.concat(actionMiddleware), ctx);
 
     return wrapper;
   }
