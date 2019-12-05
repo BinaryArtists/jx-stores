@@ -1,7 +1,7 @@
 {
-  "name": "@ice/store",
-  "version": "0.3.0",
-  "description": "Lightweight React state management library based on react hooks",
+  "name": "jx-viewmodel",
+  "version": "0.1.0",
+  "description": "",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
   "files": [

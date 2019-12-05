@@ -1,36 +1,22 @@
 [English](./README.md) | 简体中文
 
-# icestore
-
-> 基于 React Hooks 实现的轻量级状态管理框架
-
-[![NPM version](https://img.shields.io/npm/v/@ice/store.svg?style=flat)](https://npmjs.org/package/@ice/store)
-[![Package Quality](https://npm.packagequality.com/shield/@ice%2Fstore.svg)](https://packagequality.com/#?package=@ice/store)
-[![build status](https://img.shields.io/travis/ice-lab/icestore.svg?style=flat-square)](https://travis-ci.org/ice-lab/icestore)
-[![Test coverage](https://img.shields.io/codecov/c/github/ice-lab/icestore.svg?style=flat-square)](https://codecov.io/gh/ice-lab/icestore)
-[![NPM downloads](http://img.shields.io/npm/dm/@ice/store.svg?style=flat)](https://npmjs.org/package/@ice/store)
-[![Known Vulnerabilities](https://snyk.io/test/npm/@ice/store/badge.svg)](https://snyk.io/test/npm/@ice/store)
-[![David deps](https://img.shields.io/david/ice-lab/icestore.svg?style=flat-square)](https://david-dm.org/ice-lab/icestore)
+轻量级状态管理框架，有以下核心特点：
 
 ## 安装
 
+依赖了 React@16.8.0+ 提供的 Hooks 特性，因此只支持 React 16.8.0 及以上版本。
+
 ```bash
-$ npm install @ice/store --save
+$ npm i -S jx-dcore
 ```
 
-## 简介
-
-`icestore` 是基于 React Hooks 实现的轻量级状态管理框架，有以下核心特点：
+## Features
 
 * **极简 API**：只有 5 个 API，简单上手，使用方便，不需要学习 Redux 里的各种概念。
 * **React Hooks**：拥抱 Hooks 的使用体验，同时也是基于 React Hooks 实现。
 * **集成异步状态**：记录异步 action 的执行状态，简化 view 组件中对于 loading 与 error 状态的渲染逻辑。
 * **性能优化**：通过多 store 的去中心化设计，减少单个 state 变化触发重新渲染的组件个数，从而减少不必要的渲染。
 * **单向数据流**：与 Redux 一样使用单向数据流，便于状态的追踪与预测。
-
-### 兼容性
-
-`icestore` 由于依赖了 React@16.8.0+ 提供的 Hooks 特性，因此只支持 React 16.8.0 及以上版本。
 
 ## 快速开始
 
@@ -70,7 +56,7 @@ import todos from './todos';
 import Store from '@ice/store';
 
 const storeManager = new Store();
-storeManager.registerStore('todos', todos);
+storeManager.register('todos', todos);
 
 export default storeManager;
 ```
@@ -199,7 +185,7 @@ ReactDOM.render(<Todo />, document.getElementById('root'));
 
 ## API
 
-### registerStore
+### use
 
 将 store 配置注释到全局 store 实例。
 
@@ -209,7 +195,7 @@ ReactDOM.render(<Todo />, document.getElementById('root'));
 * 返回值
   - {object} store 实例
 
-### applyMiddleware
+### mix
 
 给所有 store 或者指定 namespace 的 store 注册 middleware，如果不指定第 2 个参数，给所有 store 注册 middleware，如果指定第 2 个参数，则给指定 namespace 的 store 注册 middleware，详细用法见[注册方式](#注册方式)
 
@@ -421,8 +407,8 @@ if (process.env.NODE_ENV !== 'production') {
   middlewares.push(logger);
 }
 
-icestore.applyMiddleware(middlewares);
-icestore.registerStore('todos', todos);
+icestore.install(middlewares);
+icestore.register('todos', todos);
 ```
 
 注册成功后，当 `store` 中的 action 被调用时，在浏览器的 DevTools 中将能看到实时的日志：
@@ -436,11 +422,6 @@ icestore.registerStore('todos', todos);
 * Added / Deleted / Updated: state 变化的 diff
 * Old state: 更新前的 state
 * New state: 更新后的 state
-
-
-## 测试
-
-由于所有的 state 和 actions 都封装在一个普通的 JavaScript 对象中，可以在不 mock 的情况下很容易的给 store 写测试用例。
 
 #### 示例
 
@@ -472,13 +453,3 @@ describe('todos', () => {
 - [redux-react-hook](https://github.com/facebookincubator/redux-react-hook)
 - [redux](https://github.com/reduxjs/redux)
 - [mobx](https://github.com/mobxjs/mobx)
-
-## Contributors
-
-欢迎反馈问题 [issue 链接](https://github.com/alibaba/ice/issues/new)
-如果对 `icestore` 感兴趣，欢迎参考 [CONTRIBUTING.md](https://github.com/alibaba/ice/blob/master/.github/CONTRIBUTING.md) 学习如何贡献代码。
-
-## License
-
-[MIT](LICENSE)
-

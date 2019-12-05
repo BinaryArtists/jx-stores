@@ -1,4 +1,4 @@
-import { Ctx, Middleware, ComposeFunc } from '../interface';
+import { Ctx, Middleware, ComposeFunc } from '../index.prot';
 
 /**
  * Compose a middleware chain consisting of all the middlewares

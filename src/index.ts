@@ -1,12 +1,12 @@
-import Store from './store';
-import { Middleware } from './interface';
+import Store from './viewmodel';
+import { Middleware } from './index.prot';
 
 export default class Icestore {
   /** Stores registered */
   private stores: {[namespace: string]: Store} = {};
 
   /** Global middlewares applied to all stores */
-  private globalMiddlewares: Middleware[] = [];
+  private plugins: Middleware[] = [];
 
   /** middleware applied to single store */
   private middlewareMap: {[namespace: string]: Middleware[]} = {};
@@ -17,13 +17,15 @@ export default class Icestore {
    * @param {object} bindings - object of state and actions used to init store
    * @return {object} store instance
    */
-  public registerStore(namespace: string, bindings: object): Store {
+  public register(namespace: string, bindings: object): Store {
     if (this.stores[namespace]) {
       throw new Error(`Namespace have been used: ${namespace}.`);
     }
 
     const storeMiddlewares = this.middlewareMap[namespace] || [];
-    const middlewares = this.globalMiddlewares.concat(storeMiddlewares);
+    const middlewares = this.plugins.concat(storeMiddlewares);
+
+    // Bindings ==> ViewModel
     this.stores[namespace] = new Store(namespace, bindings, middlewares);
     return this.stores[namespace];
   }
@@ -33,11 +35,11 @@ export default class Icestore {
    * @param {array} middlewares - middlewares queue of store
    * @param {string} namespace - unique name of store
    */
-  public applyMiddleware(middlewares: Middleware[], namespace: string): void {
+  public install(middlewares: Middleware[], namespace: string): void {
     if (namespace !== undefined) {
       this.middlewareMap[namespace] = middlewares;
     } else {
-      this.globalMiddlewares = middlewares;
+      this.plugins = middlewares;
     }
   }
 
@@ -46,7 +48,7 @@ export default class Icestore {
    * @param {string} namespace - unique name of store
    * @return {object} store instance
    */
-  private getModel(namespace: string): Store {
+  private getViewModel(namespace: string): Store {
     const store: Store = this.stores[namespace];
     if (!store) {
       throw new Error(`Not found namespace: ${namespace}.`);
@@ -60,7 +62,7 @@ export default class Icestore {
    * @return {object} store's state
    */
   public getState(namespace: string): object {
-    return this.getModel(namespace).getState();
+    return this.getViewModel(namespace).getState();
   }
 
   /**
@@ -69,7 +71,7 @@ export default class Icestore {
    * @return {object} store's bindings
    */
   public useStore(namespace: string): object {
-    return this.getModel(namespace).useStore();
+    return this.getViewModel(namespace).useStore();
   }
 
   /**

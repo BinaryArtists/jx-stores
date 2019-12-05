@@ -32,7 +32,7 @@ if (process.env.NODE_ENV !== 'production') {
 }
 
 icestore.applyMiddleware(middlewares);
-icestore.registerStore('todos', todos);
+icestore.register('todos', todos);
 ```
 
 注册成功后，当 `store` 中的 action 被调用时，在浏览器的 DevTools 中将能看到实时的日志：

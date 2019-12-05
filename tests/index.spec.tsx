@@ -1,7 +1,8 @@
 import * as React from 'react';
+import { useState, useEffect } from 'react';
 import { render, fireEvent, getByTestId } from 'react-testing-library';
 import Icestore from '../src/index';
-import Store from '../src/store';
+import Store from '../src/viewmodel';
 
 function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
@@ -12,7 +13,7 @@ describe('#Icestore', () => {
     expect(new Icestore()).toBeDefined();
   });
 
-  describe('#registerStore', () => {
+  describe('#use', () => {
     let icestore;
 
     beforeEach(() => {
@@ -20,15 +21,15 @@ describe('#Icestore', () => {
     });
 
     test('should return a Store.', () => {
-      const store = icestore.registerStore('test', {
+      const store = icestore.register('test', {
         name: 'ice',
       });
       expect(store instanceof Store).toBe(true);
     });
 
     test('should throw an Error when the same namespace is registered.', () => {
-      icestore.registerStore('test', {});
-      expect(() => icestore.registerStore('test', {})).toThrowError('Namespace have been used: test');
+      icestore.register('test', {});
+      expect(() => icestore.register('test', {})).toThrowError('Namespace have been used: test');
     });
   });
 
@@ -40,7 +41,7 @@ describe('#Icestore', () => {
 
     beforeEach(() => {
       icestore = new Icestore();
-      icestore.registerStore('foo', { data: 'abc', fetchData: () => {} });
+      icestore.register('foo', { data: 'abc', fetchData: () => {} });
     });
 
     test('should apply to global success.', () => {
@@ -61,7 +62,7 @@ describe('#Icestore', () => {
 
     beforeEach(() => {
       icestore = new Icestore();
-      icestore.registerStore('foo', { data: 'abc', fetchData: () => {} });
+      icestore.register('foo', { data: 'abc', fetchData: () => {} });
     });
 
     test('should get state from store success.', () => {
@@ -91,7 +92,7 @@ describe('#Icestore', () => {
       const newState = {
         name: 'rax',
       };
-      icestore.registerStore('todo', {
+      icestore.register('todo', {
         dataSource: initState,
         setData(dataSource) {
           this.dataSource = dataSource;
@@ -103,15 +104,24 @@ describe('#Icestore', () => {
       const Todos = () => {
         const todo: any = icestore.useStore('todo');
         const { dataSource } = todo;
+// const [ state, setState ] = useState(initState);
 
         renderFn();
 
+        console.log('renderFn called');
+
         function handleClick() {
           todo.setData(newState);
+
+          console.log(newState);
+// setState(newState);
         }
+
+// <span data-testid="nameValue">{state.name}</span>
 
         return <div>
           <span data-testid="nameValue">{dataSource.name}</span>
+          
           <button type="button" data-testid="actionButton" onClick={handleClick}>
           Click me
           </button>
@@ -128,16 +138,17 @@ describe('#Icestore', () => {
       fireEvent.click(actionButton);
 
       await sleep(10);
-
-      expect(renderFn).toHaveBeenCalledTimes(2);
+      console.log(nameValue.textContent, ', ', newState.name);
       expect(nameValue.textContent).toEqual(newState.name);
+      expect(renderFn).toHaveBeenCalledTimes(2);
+      
     });
 
     test('should useStores be ok.', () => {
       const todoStore = { name: 'ice' };
       const projectStore = { name: 'rax' };
-      icestore.registerStore('todo', todoStore);
-      icestore.registerStore('project', projectStore);
+      icestore.register('todo', todoStore);
+      icestore.register('project', projectStore);
 
       const App = () => {
         const [todo, project] = icestore.useStores(['todo', 'project']);

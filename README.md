@@ -1,5 +1,7 @@
 English | [简体中文](./README.zh-CN.md)
 
+最大化支持前端领域驱动
+
 # icestore
 
 > Lightweight React state management library based on react hooks
@@ -68,7 +70,7 @@ import todos from './todos';
 import Icestore from '@ice/store';
 
 const icestore = new Icestore();
-icestore.registerStore('todos', todos);
+icestore.register('todos', todos);
 
 export default icestore;
 ```
@@ -413,8 +415,8 @@ if (process.env.NODE_ENV !== 'production') {
   middlewares.push(logger);
 }
 
-icestore.applyMiddleware(middlewares);
-icestore.registerStore('todos', todos);
+icestore.install(middlewares);
+icestore.register('todos', todos);
 ```
 
 When action was dispatched, the log will be printed into browser's DevTools by realtime:

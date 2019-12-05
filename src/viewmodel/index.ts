@@ -1,18 +1,17 @@
 import * as isFunction from 'lodash.isfunction';
 import * as isPromise from 'is-promise';
 import { useState, useEffect } from 'react';
-import compose from './util/compose';
-import { ComposeFunc, Middleware } from './interface';
+import compose from '../util/compose';
+import { ComposeFunc, Middleware } from '../index.prot';
 
 export default class Store {
+  private namespace = '';
+
   /** Store state and actions user defined */
   private bindings: {[name: string]: any} = {};
 
   /** Queue of setState method from useState hook */
   private queue = [];
-
-  /** Namespace of store */
-  private namespace = '';
 
   /** Middleware queue of store */
   private middlewares = [];
@@ -44,6 +43,7 @@ export default class Store {
    */
   private createAction(func: () => any, actionName: string): ComposeFunc {
     const actionWrapper: any = async (...args) => {
+      console.log('actionwrapper');
       wrapper.loading = true;
       wrapper.error = null;
 
@@ -121,13 +121,18 @@ export default class Store {
   public useStore(): object {
     const state = this.getState();
     const [, setState] = useState(state);
+
     useEffect(() => {
+      // When INIT and RERENDER
       this.queue.push(setState);
+
+      // When UNINIT
       return () => {
         const index = this.queue.indexOf(setState);
         this.queue.splice(index, 1);
       };
     }, []);
+
     return { ...this.bindings };
   }
 }

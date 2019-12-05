@@ -10,7 +10,7 @@ if (process.env.NODE_ENV !== 'production') {
   middlewares.push(logger);
 }
 
-icestore.applyMiddleware(middlewares);
-icestore.registerStore('todos', todos);
+icestore.install(middlewares);
+icestore.register('todos', todos);
 
 export default icestore;
