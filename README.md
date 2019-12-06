@@ -1,14 +1,12 @@
 
 轻量级状态管理框架，有以下核心特点：
 
-"prepublishOnly": "npm run lint && npm run test && npm run build",
-
 ## 安装
 
 依赖了 React@16.8.0+ 提供的 Hooks 特性，因此只支持 React 16.8.0 及以上版本。
 
 ```bash
-$ npm i -S jx-dcore
+$ npm i -S jx-stores
 ```
 
 ## Features
@@ -21,108 +19,7 @@ $ npm i -S jx-dcore
 
 ## 快速开始
 
-让我们使用 `icestore` 开发一个简单的 todo 应用，包含以下几个步骤：
-
-* 定义 store：
-
-```javascript
-// src/stores/todos.js，不同 store 对应不同的 js 文件
-export default {
-  dataSource: [],
-  async fetchData() {
-    // 模拟异步请求
-    const data = await new Promise(resolve =>
-      setTimeout(() => {
-        resolve([
-          { name: 'react' },
-          { name: 'vue', done: true},
-          { name: 'angular' },
-        ]);
-      }, 1000)
-    );
-    this.dataSource = data;
-  },
-
-  add(todo) {
-    this.dataSource.push(todo);
-  },
-};
-```
-
-* 注册 store：
-
-```javascript
-// src/stores/index.js，所有的 store 都在这里注册
-import todos from './todos';
-import Store from '@ice/store';
-
-const storeManager = new Store();
-storeManager.use('todos', todos);
-
-export default storeManager;
-```
-
-* 在 view 组件中，绑定 store：
-
-```javascript
-// src/index.js
-import React, { useEffect } from 'react';
-import ReactDOM from 'react-dom';
-import stores from './stores';
-
-function Todo() {
-  const todos = stores.useStore('todos');
-  const { dataSource, fetchData, add, } = todos;
-
-  useEffect(() => {
-    fetchData();
-  }, []);
-
-  function handleAdd(name) {
-    add({ name });
-  }
-
-  if (fetchData.loading) {
-    return <span>loading...</span>;
-  } else {
-    return (
-      <div>
-        <ul>
-          {dataSource.map(({ name, done }, index) => (
-            <li key={index}>
-              <label>
-                <input
-                  type="checkbox"
-                  checked={done}
-                  onClick={() => onCheck(index)}
-                />
-                {done ? <s>{name}</s> : <span>{name}</span>}
-              </label>
-              <button onClick={() => onRemove(index)}>-</button>
-            </li>
-          ))}
-        </ul>
-        <div>
-          <input
-            onKeyDown={event => {
-              if (event.keyCode === 13) {
-                handleAdd(event.target.value);
-                event.target.value = '';
-              }
-            }}
-            placeholder="Press Enter"
-          />
-        </div>
-      </div>
-    )
-  }
-}
-
-ReactDOM.render(<Todo />, document.getElementById('root'));
-```
-
-完整示例展示在这个 [sandbox](https://codesandbox.io/s/icestore-hs9fe)。
-
+* 请参考 /examples
 
 ## 实现原理
 
@@ -150,31 +47,6 @@ ReactDOM.render(<Todo />, document.getElementById('root'));
 ```
 
 如果项目比较庞大或者更倾向于 store 跟随页面维护，那么可以在每个 page 目录都声明一个 store 示例，但是这种情况建立尽量避免跨页面的 store 调用。
-
-### 不要在 action 之外直接修改 state
-
-`icestore` 的架构设计中强制要求对 state 的变更只能在 action 中进行。在 action 之外的对 state 的修改不生效。这个设计的原因是在 action 之外修改 state 将导致 state 变更逻辑散落在 view 中，变更逻辑将会难以追踪和调试。
-
-```javascript
-  // store.js
-  export default {
-    inited: false,
-    setInited() {
-      this.inited = true;
-    }
-  }
-
-  // view.js
-  const todos = useStore('todos');
-
-  useEffect(() => {
-    // bad
-    todos.inited = true;
-
-    // good
-    todos.setInited();
-  });
-```
 
 ### 尽可能小的拆分 store
 
@@ -254,44 +126,7 @@ ReactDOM.render(<Todo />, document.getElementById('root'));
   - Type: {boolean}
   - Default: false
 
-
-#### 示例
-
-```javascript
-const todos = store.useStore('todos');
-const { refresh, dataSource } = todos;
-
-useEffect(() => {
-  refresh();
-}, []);
-
-const loadingView = (
-  <div>
-    loading.......
-  </div>
-);
-
-const taskView = !refresh.error ? (
-  <ul>
-   {dataSource.map(({ name }) => (
-     <li>{name}</li>
-   ))}
-  </ul>
-) : (
-  <div>
-    {refresh.error.message}
-  </div>
-);
-
-
-return (
-  <div>
-    {!refresh.loading ? taskView : loadingView}
-  <Loading />
-);
-```
-
-### 中间件
+### 中间插件
 
 #### 背景
 
@@ -447,10 +282,3 @@ describe('todos', () => {
 ```
 
 完整的测试用例请参考上面[sandbox](https://codesandbox.io/s/icestore-hs9fe)中的 `todos.spec.js` 文件。
-
-## Reference
-
-- [react-hooks-model](https://github.com/yisbug/react-hooks-model)
-- [redux-react-hook](https://github.com/facebookincubator/redux-react-hook)
-- [redux](https://github.com/reduxjs/redux)
-- [mobx](https://github.com/mobxjs/mobx)

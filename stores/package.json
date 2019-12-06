@@ -28,6 +28,7 @@
   "scripts": {
     "build": "rm -rf lib && tsc",
     "watch": "tsc -w",
+    "prepublishOnly": "npm run lint && npm run test && npm run build",
     "lint": "npm run lint:nofix -- --fix",
     "lint:nofix": "eslint --cache --ext .ts,.tsx ./",
     "test": "NODE_ENV=unittest jest",
