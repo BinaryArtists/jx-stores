@@ -8,7 +8,7 @@ function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
 
-describe('#Icestore', () => {
+describe('#JxStores', () => {
   test('new Class should be defined.', () => {
     expect(new Icestore()).toBeDefined();
   });
@@ -33,9 +33,9 @@ describe('#Icestore', () => {
     });
   });
 
-  describe('#applyMiddleware', () => {
+  describe('#mix', () => {
     let icestore;
-    const testMiddleware = async (ctx, next) => {
+    const testPlugin = async (ctx, next) => {
       return next();
     };
 
@@ -45,12 +45,12 @@ describe('#Icestore', () => {
     });
 
     test('should apply to global success.', () => {
-      icestore.applyMiddleware([testMiddleware]);
-      expect(icestore.globalMiddlewares).toEqual([testMiddleware]);
+      icestore.mix([testPlugin]);
+      expect(icestore.plugins).toEqual([testPlugin]);
     });
     test('should apply to single store success.', () => {
-      icestore.applyMiddleware([testMiddleware], 'foo');
-      expect(icestore.middlewareMap.foo).toEqual([testMiddleware]);
+      icestore.mix([testPlugin], 'foo');
+      expect(icestore.pluginMap.foo).toEqual([testPlugin]);
     });
   });
 
@@ -92,6 +92,7 @@ describe('#Icestore', () => {
       const newState = {
         name: 'rax',
       };
+
       icestore.use('todo', {
         dataSource: initState,
         setData(dataSource) {
@@ -108,12 +109,9 @@ describe('#Icestore', () => {
 
         renderFn();
 
-        console.log('renderFn called');
-
         function handleClick() {
           todo.setData(newState);
 
-          console.log(newState);
           // setState(newState);
         }
 
@@ -138,9 +136,11 @@ describe('#Icestore', () => {
       fireEvent.click(actionButton);
 
       await sleep(10);
-      console.log(nameValue.textContent, ', ', newState.name);
+      
       expect(nameValue.textContent).toEqual(newState.name);
       expect(renderFn).toHaveBeenCalledTimes(2);
+
+      const testButton = getByTestId(container, 'actionButton');
       
     });
 

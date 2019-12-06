@@ -43,8 +43,6 @@ export default class ViewModel {
    */
   private createAction(func: () => any, actionName: string): ComposeFunc {
     const actionWrapper: any = async (...args) => {
-      console.log('actionwrapper');
-      
       wrapper.loading = true;
       wrapper.error = null;
 
@@ -64,6 +62,7 @@ export default class ViewModel {
 
       try {
         const value = await result;
+
         afterExec();
         return value;
       } catch (e) {
@@ -112,6 +111,9 @@ export default class ViewModel {
    */
   private setState(): void {
     const state = this.getState();
+
+    // console.log(`${this.namespace} queue = `, this.queue);
+
     this.queue.forEach(setState => setState(state));
   }
 
@@ -123,14 +125,19 @@ export default class ViewModel {
     const state = this.getState();
     const [, setState] = useState(state);
 
-    useEffect(() => {
-      // When INIT and RERENDER
-      this.queue.push(setState);
+    // When INIT and RERENDER
+    // fix: 这里从 useEffect 中挪出来了，不确定是否有副作用
+    this.queue.push(setState);
 
+    // console.log(`${this.namespace} in state`);
+
+    useEffect(() => {
       // When UNINIT
       return () => {
         const index = this.queue.indexOf(setState);
         this.queue.splice(index, 1);
+
+        // console.log(`${this.namespace} out state`);
       };
     }, []);
 
